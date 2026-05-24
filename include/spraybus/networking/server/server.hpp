@@ -89,14 +89,22 @@ template <typename Derived, typename ClientData> class Server {
                 event.peer->data = create_client(event.peer);
                 derived()->on_connect(static_cast<Client*>(event.peer->data));
                 break;
-            case ENET_EVENT_TYPE_RECEIVE:
+            case ENET_EVENT_TYPE_RECEIVE: {
+                struct PacketGuard {
+                    ENetPacket* packet;
+                    ~PacketGuard() {
+                        if (packet != nullptr) {
+                            enet_packet_destroy(packet);
+                        }
+                    }
+                } packet_guard{event.packet};
+
                 derived()->on_message(
                     static_cast<Client*>(event.peer->data),
                     std::span<std::byte>(
                         reinterpret_cast<std::byte*>(event.packet->data),
                         event.packet->dataLength));
-                enet_packet_destroy(event.packet);
-                break;
+            } break;
             case ENET_EVENT_TYPE_DISCONNECT:
                 derived()->on_disconnect(
                     static_cast<Client*>(event.peer->data));

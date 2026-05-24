@@ -17,6 +17,14 @@ void Server::on_disconnect(Client* client) {
 }
 
 void Server::on_message(Client* client, std::span<std::byte> message) {
+    if (message.size() < sizeof(protocol::Header)) {
+        LOG_WARNING(this->logger(),
+                    "Ignoring malformed packet from client {}: expected at "
+                    "least {} bytes, got {}",
+                    client->id(), sizeof(protocol::Header), message.size());
+        return;
+    }
+
     protocol::Message msg(message);
     LOG_DEBUG(this->logger(), "Received message from client {}: {}",
               client->id(), msg.to_string());
