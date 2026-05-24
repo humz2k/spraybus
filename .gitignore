@@ -75,3 +75,5 @@ docs/html/
 docs/latex/
 
 .env
+.vscode
+.DS_Store
