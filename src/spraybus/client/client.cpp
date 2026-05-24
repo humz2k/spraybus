@@ -3,8 +3,7 @@
 namespace spraybus::client {
 
 Client::Client(std::string host, uint16_t port)
-    : common::ClassLogger("client"), m_client(host, port), m_host(host),
-      m_port(port) {}
+    : m_client(host, port), m_host(host), m_port(port) {}
 
 uint64_t Client::get_topic_key(const std::string& topic) {
     auto it = m_topic_map.find(topic);
@@ -23,8 +22,6 @@ uint64_t Client::get_topic_key(const std::string& topic) {
         uint64_t topic_key = response.header().topic_key();
         m_topic_map[topic_name] = topic_key;
         m_inverse_topic_map[topic_key] = topic_name;
-        LOG_INFO(this->logger(), "Registered topic '{}' with key {}",
-                 topic_name, topic_key);
         return topic_key;
     } else {
         throw std::runtime_error(

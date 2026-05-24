@@ -5,7 +5,6 @@
  * @brief High-level spraybus publishing and subscription client.
  */
 
-#include <spraybus/common/logging.hpp>
 #include <spraybus/networking/client/client.hpp>
 #include <spraybus/protocol/protocol.hpp>
 
@@ -25,7 +24,7 @@ namespace spraybus::client {
  * The client maintains a local topic-name cache. Topic names are resolved
  * through the server before publish or subscribe operations that use strings.
  */
-class Client : public common::ClassLogger {
+class Client {
   private:
     networking::client::Client m_client;
     std::string m_host;
@@ -119,8 +118,6 @@ class Client : public common::ClassLogger {
                 lambda(msg);
             } break;
             default:
-                LOG_WARNING(this->logger(), "Unhandled message type: {}",
-                            protocol::to_string(msg.header().type()));
                 break;
             }
         }

@@ -5,8 +5,6 @@
  * @brief Wire protocol primitives for spraybus messages.
  */
 
-#include <spraybus/common/logging.hpp>
-
 #include <cstddef>
 #include <cstdint>
 #include <span>
@@ -449,83 +447,3 @@ class Message {
 };
 
 } // namespace spraybus::protocol
-
-/**
- * @brief Quill formatter for protocol origins.
- */
-template <>
-struct fmtquill::formatter<spraybus::protocol::Origin>
-    : fmtquill::formatter<std::string_view> {
-    auto format(const spraybus::protocol::Origin& value,
-                format_context& ctx) const {
-        const auto formatted = spraybus::protocol::to_string(value);
-        return fmtquill::formatter<std::string_view>::format(formatted, ctx);
-    }
-};
-
-/**
- * @brief Quill deferred-format codec for protocol origins.
- */
-template <>
-struct quill::Codec<spraybus::protocol::Origin>
-    : quill::DeferredFormatCodec<spraybus::protocol::Origin> {};
-
-/**
- * @brief Quill formatter for protocol versions.
- */
-template <>
-struct fmtquill::formatter<spraybus::protocol::Version>
-    : fmtquill::formatter<std::string_view> {
-    auto format(const spraybus::protocol::Version& value,
-                format_context& ctx) const {
-        const auto formatted = spraybus::protocol::to_string(value);
-        return fmtquill::formatter<std::string_view>::format(formatted, ctx);
-    }
-};
-
-/**
- * @brief Quill deferred-format codec for protocol versions.
- */
-template <>
-struct quill::Codec<spraybus::protocol::Version>
-    : quill::DeferredFormatCodec<spraybus::protocol::Version> {};
-
-/**
- * @brief Quill formatter for protocol message types.
- */
-template <>
-struct fmtquill::formatter<spraybus::protocol::Type>
-    : fmtquill::formatter<std::string_view> {
-    auto format(const spraybus::protocol::Type& value,
-                format_context& ctx) const {
-        const auto formatted = spraybus::protocol::to_string(value);
-        return fmtquill::formatter<std::string_view>::format(formatted, ctx);
-    }
-};
-
-/**
- * @brief Quill deferred-format codec for protocol message types.
- */
-template <>
-struct quill::Codec<spraybus::protocol::Type>
-    : quill::DeferredFormatCodec<spraybus::protocol::Type> {};
-
-/**
- * @brief Quill formatter for protocol headers.
- */
-template <>
-struct fmtquill::formatter<spraybus::protocol::Header>
-    : fmtquill::formatter<std::string> {
-    auto format(const spraybus::protocol::Header& value,
-                format_context& ctx) const {
-        const auto formatted = value.to_string();
-        return fmtquill::formatter<std::string>::format(formatted, ctx);
-    }
-};
-
-/**
- * @brief Quill deferred-format codec for protocol headers.
- */
-template <>
-struct quill::Codec<spraybus::protocol::Header>
-    : quill::DeferredFormatCodec<spraybus::protocol::Header> {};
