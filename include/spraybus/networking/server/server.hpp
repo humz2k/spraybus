@@ -4,7 +4,10 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <limits>
 #include <span>
+#include <stdexcept>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -70,8 +73,15 @@ template <typename Derived, typename ClientData> class Server {
 
   public:
     Server(int port) {
+        if (port < 0 || port > std::numeric_limits<uint16_t>::max()) {
+            throw std::out_of_range(
+                "Server port must be between 0 and " +
+                std::to_string(std::numeric_limits<uint16_t>::max()) +
+                ": " + std::to_string(port));
+        }
+
         m_address.host = ENET_HOST_ANY;
-        m_address.port = port;
+        m_address.port = static_cast<uint16_t>(port);
         m_server = enet_host_create(&m_address, 8, 2, 0, 0);
         if (m_server == nullptr) {
             throw std::runtime_error("Failed to create ENet server");
