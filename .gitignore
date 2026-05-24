@@ -68,4 +68,9 @@ vcpkg_installed/
 Testing/
 .cache/
 
+# Generated documentation
+docs/api/
+docs/html/
+docs/latex/
+
 .env

@@ -1,8 +1,14 @@
 #pragma once
 
+/**
+ * @file server.hpp
+ * @brief Low-level CRTP ENet server wrapper.
+ */
+
 #include <enet/enet.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <span>
@@ -13,6 +19,12 @@
 
 namespace spraybus::networking::server {
 
+/**
+ * @brief Connected peer record owned by a networking server.
+ *
+ * @tparam ClientData Per-client application data stored alongside the ENet
+ * peer.
+ */
 template <typename ClientData> class Client {
   private:
     uint64_t m_id;
@@ -21,15 +33,36 @@ template <typename ClientData> class Client {
     ClientData m_data;
 
   public:
+    /**
+     * @brief Construct a connected client record.
+     *
+     * @param id Server-local client identifier.
+     * @param peer ENet peer pointer for the connection.
+     * @param server Owning ENet server host.
+     */
     Client(uint64_t id, ENetPeer* peer, ENetHost* server)
         : m_id(id), m_peer(peer), m_server(server) {}
 
+    /**
+     * @brief Return the server-local client identifier.
+     */
     uint64_t id() const { return m_id; }
 
+    /**
+     * @brief Return mutable per-client application data.
+     */
     ClientData& data() { return m_data; }
 
+    /**
+     * @brief Return immutable per-client application data.
+     */
     const ClientData& data() const { return m_data; }
 
+    /**
+     * @brief Send a reliable message to this client.
+     *
+     * @param message Packet bytes to send.
+     */
     void send(std::span<const std::byte> message) {
         ENetPacket* packet = enet_packet_create(message.data(), message.size(),
                                                 ENET_PACKET_FLAG_RELIABLE);
@@ -38,8 +71,25 @@ template <typename ClientData> class Client {
     }
 };
 
+/**
+ * @brief CRTP ENet server base that dispatches connection events to a derived
+ * type.
+ *
+ * The derived type must implement:
+ *
+ * - `void on_process()`
+ * - `void on_connect(Client*)`
+ * - `void on_disconnect(Client*)`
+ * - `void on_message(Client*, std::span<std::byte>)`
+ *
+ * @tparam Derived Server implementation that receives event callbacks.
+ * @tparam ClientData Per-client application data type.
+ */
 template <typename Derived, typename ClientData> class Server {
   public:
+    /**
+     * @brief Connected client type for this server specialization.
+     */
     using Client = Client<ClientData>;
 
   private:
@@ -72,12 +122,19 @@ template <typename Derived, typename ClientData> class Server {
     }
 
   public:
+    /**
+     * @brief Bind a server to a UDP port.
+     *
+     * @param port UDP port in the range 0..65535.
+     * @throws std::out_of_range when @p port is outside the valid UDP range.
+     * @throws std::runtime_error when ENet cannot create the server host.
+     */
     Server(int port) {
         if (port < 0 || port > std::numeric_limits<uint16_t>::max()) {
             throw std::out_of_range(
                 "Server port must be between 0 and " +
-                std::to_string(std::numeric_limits<uint16_t>::max()) +
-                ": " + std::to_string(port));
+                std::to_string(std::numeric_limits<uint16_t>::max()) + ": " +
+                std::to_string(port));
         }
 
         m_address.host = ENET_HOST_ANY;
@@ -88,8 +145,17 @@ template <typename Derived, typename ClientData> class Server {
         }
     }
 
+    /**
+     * @brief Destroy the ENet server host.
+     */
     ~Server() { enet_host_destroy(m_server); }
 
+    /**
+     * @brief Poll the ENet server and dispatch all pending events.
+     *
+     * Received packets are destroyed even if the derived message handler
+     * throws.
+     */
     void process() {
         derived()->on_process();
         ENetEvent event;
@@ -126,6 +192,11 @@ template <typename Derived, typename ClientData> class Server {
         }
     }
 
+    /**
+     * @brief Send a reliable packet to every connected client.
+     *
+     * @param message Packet bytes to broadcast.
+     */
     void broadcast(std::span<const std::byte> message) {
         ENetPacket* packet = enet_packet_create(message.data(), message.size(),
                                                 ENET_PACKET_FLAG_RELIABLE);
@@ -133,7 +204,14 @@ template <typename Derived, typename ClientData> class Server {
         enet_host_flush(m_server);
     }
 
+    /**
+     * @brief Return connected clients.
+     */
     std::span<Client*> clients() { return m_clients; }
+
+    /**
+     * @brief Return connected clients from a const server.
+     */
     std::span<const Client*> clients() const { return m_clients; }
 };
 
