@@ -10,23 +10,64 @@ protocol work.
 
 ## Dependencies
 
-The Conan recipe declares the project dependencies:
+The default Conan package builds the client library only and depends on:
 
-- quill
 - ENet
+
+Local server/app builds also require Quill.
 
 You also need a C++23 compiler, CMake, and Conan 2.
 
-## Build
+## Client Package
 
-From the repository root:
+Create the installable Conan package from the repository root:
 
 ```sh
-conan build .
+conan create . --build=missing
 ```
 
-By default, this writes build artifacts under `build/Release/` and creates the
-following executables:
+The package reference is:
+
+```text
+spraybus-client/0.1
+```
+
+The package installs the client-facing headers and libraries:
+
+- `spraybus-client`
+- `spraybus-networking`
+
+It exposes the CMake target:
+
+```cmake
+find_package(spraybus-client CONFIG REQUIRED)
+target_link_libraries(app PRIVATE spraybus::client)
+```
+
+Upload the package to a configured Conan remote:
+
+```sh
+conan remote add myrepo <repo-url>
+conan login myrepo <user>
+conan upload "spraybus-client/0.1:*" -r=myrepo -c
+```
+
+The client package does not include the server library, server headers, CLI, or
+Quill.
+
+ENet is a public transitive dependency because the client headers expose the
+low-level networking wrapper directly.
+
+## Local Build
+
+To build the server and CLI for local development:
+
+```sh
+conan build . --build=missing -o "&:with_server=True" -o "&:with_apps=True"
+```
+
+This writes build artifacts under `build/Release/` and creates the following
+executables:
 
 ```text
 build/Release/main
@@ -116,7 +157,6 @@ Subscribe and poll for fanout messages:
 
 ```cpp
 #include <spraybus/client/client.hpp>
-#include <spraybus/common/interrupts.hpp>
 #include <spraybus/networking/networking.hpp>
 
 #include <chrono>
@@ -129,12 +169,12 @@ int main() {
     spraybus::client::Client client("localhost", 6767);
     client.subscribe("alerts");
 
-    spraybus::common::run_forever([&] {
+    while (true) {
         client.process([](const spraybus::networking::protocol::Message& msg) {
             std::cout << msg.topic() << ": " << msg.payload_as_string() << '\n';
         });
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    });
+    }
 }
 ```
 
