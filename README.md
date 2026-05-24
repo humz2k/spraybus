@@ -58,6 +58,26 @@ Quill.
 ENet is a public transitive dependency because the client headers expose the
 low-level networking wrapper directly.
 
+## Example Client
+
+The `examples/client` directory is a standalone Conan/CMake app that consumes
+`spraybus-client/0.1` like an external project.
+
+Build it against the locally created package:
+
+```sh
+conan create . --build=missing
+conan build examples/client --build=missing -nr
+```
+
+Or point Conan at this checkout while iterating:
+
+```sh
+conan editable add . --name=spraybus-client --version=0.1
+conan build examples/client --build=missing
+conan editable remove .
+```
+
 ## Local Build
 
 To build the server and CLI for local development:

@@ -51,7 +51,7 @@ cmake_install.cmake
 Makefile
 install_manifest.txt
 compile_commands.json
-test_package/CMakeUserPresets.json
+CMakeUserPresets.json
 
 # Temporary files
 *.tmp
@@ -75,4 +75,3 @@ docs/html/
 docs/latex/
 
 .env
-CMakeUserPresets.json
