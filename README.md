@@ -8,27 +8,6 @@ The project is early and intentionally compact. It is useful as a local
 messaging primitive, an experiment in topic fanout, and a base for richer
 protocol work.
 
-## Features
-
-- Reliable UDP transport through ENet.
-- Server-assigned numeric topic keys.
-- Named-topic publish and subscribe API for C++ callers.
-- NATS-style CLI commands: `pub` and `sub`.
-- Environment-based host and port configuration.
-- Doxygen comments and configuration for generated API docs.
-
-## Repository Layout
-
-```text
-include/spraybus/          Public library headers
-src/spraybus/              Library implementations
-drivers/main.cpp           Server executable
-drivers/cli.cpp            Command-line publish/subscribe client
-CMakeLists.txt             CMake target definitions
-conanfile.py               Conan dependency and build recipe
-docs/Doxyfile              Doxygen API documentation config
-```
-
 ## Dependencies
 
 The Conan recipe declares the project dependencies:
@@ -69,8 +48,6 @@ Set `SPRAYBUS_PORT` to choose a different port:
 ```sh
 SPRAYBUS_PORT=7000 ./build/Release/main
 ```
-
-The server validates that ports are in the range `0..65535`.
 
 ## CLI
 
@@ -188,8 +165,7 @@ Current message types:
 - `fanout`: header contains the topic key and payload contains forwarded user
   bytes.
 
-The server drops packets shorter than the protocol header so malformed input
-does not crash the event loop.
+The server drops packets shorter than the protocol header.
 
 ## Logging
 
