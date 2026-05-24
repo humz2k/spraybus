@@ -18,6 +18,7 @@ class Client : public common::ClassLogger {
     uint16_t m_port;
     protocol::Constructor m_protocol_constructor;
     std::unordered_map<std::string, uint64_t> m_topic_map;
+    std::unordered_map<uint64_t, std::string> m_inverse_topic_map;
 
   public:
     Client(std::string host, uint16_t port);
@@ -40,12 +41,10 @@ class Client : public common::ClassLogger {
             protocol::Message msg(packet.data());
             switch (msg.header().type()) {
             case protocol::Type::fanout: {
-                std::string topic_name = "unknown";
-                for (const auto& [name, key] : m_topic_map) {
-                    if (key == msg.header().topic_key()) {
-                        topic_name = name;
-                        break;
-                    }
+                std::string_view topic_name = "unknown";
+                auto it = m_inverse_topic_map.find(msg.header().topic_key());
+                if (it != m_inverse_topic_map.end()) {
+                    topic_name = it->second;
                 }
                 msg.set_topic(topic_name);
                 lambda(msg);

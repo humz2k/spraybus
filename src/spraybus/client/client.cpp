@@ -22,6 +22,7 @@ uint64_t Client::get_topic_key(const std::string& topic) {
         std::string topic_name = std::string(response.payload_as_string());
         uint64_t topic_key = response.header().topic_key();
         m_topic_map[topic_name] = topic_key;
+        m_inverse_topic_map[topic_key] = topic_name;
         LOG_INFO(this->logger(), "Registered topic '{}' with key {}",
                  topic_name, topic_key);
         return topic_key;
