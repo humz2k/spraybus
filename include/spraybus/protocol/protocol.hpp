@@ -18,7 +18,7 @@ enum class Origin : uint8_t {
     leaf = 0x03,
 };
 
-std::string_view to_string(Origin origin) {
+inline std::string_view to_string(Origin origin) {
     switch (origin) {
     case Origin::unknown:
         return "unknown";
@@ -37,7 +37,7 @@ enum class Version : uint16_t {
     v1 = 0x01,
 };
 
-std::string_view to_string(Version version) {
+inline std::string_view to_string(Version version) {
     switch (version) {
     case Version::v1:
         return "v1";
@@ -56,7 +56,7 @@ enum class Type : uint8_t {
     fanout = 0x06,
 };
 
-std::string_view to_string(Type type) {
+inline std::string_view to_string(Type type) {
     switch (type) {
     case Type::unknown:
         return "unknown";
