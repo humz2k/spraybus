@@ -2,23 +2,18 @@
 
 /**
  * @file logging.hpp
- * @brief Quill logging setup and per-class logger helpers.
+ * @brief Quill logging setup and per-class logger helpers for server code.
  */
 
-#include <quill/DeferredFormatCodec.h>
-#include <quill/Frontend.h>
 #include <quill/LogMacros.h>
 #include <quill/Logger.h>
-#include <quill/bundled/fmt/format.h>
 
 #include <string>
-#include <string_view>
-#include <vector>
 
-namespace spraybus::common {
+namespace spraybus::server {
 
 /**
- * @brief Pointer type used by the project for Quill loggers.
+ * @brief Pointer type used by server components for Quill loggers.
  */
 using Logger = quill::Logger*;
 
@@ -30,7 +25,7 @@ using Logger = quill::Logger*;
 void init_logging();
 
 /**
- * @brief Route subsequently created loggers to a file sink.
+ * @brief Route subsequently created server loggers to a file sink.
  *
  * @param filename Path to the log file used for loggers created after this
  * call.
@@ -38,7 +33,7 @@ void init_logging();
 void set_logfile(const std::string& filename);
 
 /**
- * @brief Create or retrieve a named logger.
+ * @brief Create or retrieve a named server logger.
  *
  * @param name Logger name.
  * @return A Quill logger pointer backed by the current configured sink.
@@ -46,7 +41,7 @@ void set_logfile(const std::string& filename);
 Logger create_logger(const std::string& name);
 
 /**
- * @brief Mixin that gives a class a named Quill logger.
+ * @brief Mixin that gives a server class a named Quill logger.
  */
 class ClassLogger {
   private:
@@ -71,4 +66,4 @@ class ClassLogger {
     const Logger logger() const { return m_logger; }
 };
 
-} // namespace spraybus::common
+} // namespace spraybus::server

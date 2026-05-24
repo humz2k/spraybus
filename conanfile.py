@@ -18,9 +18,7 @@ class SprayBusConan(ConanFile):
 
     def requirements(self):
         self.requires("quill/11.0.2")
-        self.requires("boost/1.90.0")
         self.requires("enet/1.3.18")
-        self.requires("prometheus-cpp/1.3.0")
 
     def build(self):
         cmake = CMake(self)

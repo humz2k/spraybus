@@ -13,7 +13,7 @@
 #include <string_view>
 #include <vector>
 
-namespace spraybus::protocol {
+namespace spraybus::networking::protocol {
 
 /**
  * @brief Identifies which kind of node created a message.
@@ -227,9 +227,14 @@ struct [[gnu::packed]] Header {
      */
     std::string to_string() const {
         return "Header { version: " +
-               std::string(protocol::to_string(m_version_)) +
-               ", origin: " + std::string(protocol::to_string(m_origin_)) +
-               ", type: " + std::string(protocol::to_string(m_type_)) +
+               std::string(
+                   ::spraybus::networking::protocol::to_string(m_version_)) +
+               ", origin: " +
+               std::string(
+                   ::spraybus::networking::protocol::to_string(m_origin_)) +
+               ", type: " +
+               std::string(
+                   ::spraybus::networking::protocol::to_string(m_type_)) +
                ", topic_key: " + std::to_string(m_topic_key_) + " }";
     }
 };
@@ -446,4 +451,4 @@ class Message {
     }
 };
 
-} // namespace spraybus::protocol
+} // namespace spraybus::networking::protocol

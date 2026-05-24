@@ -13,9 +13,7 @@ protocol work.
 The Conan recipe declares the project dependencies:
 
 - quill
-- Boost
 - ENet
-- prometheus-cpp
 
 You also need a C++23 compiler, CMake, and Conan 2.
 
@@ -34,6 +32,12 @@ following executables:
 build/Release/main
 build/Release/cli
 ```
+
+The build defines three library targets:
+
+- `spraybus-networking`, which wraps ENet process initialization and links ENet.
+- `spraybus-client`, which links `spraybus-networking`.
+- `spraybus-server`, which links `spraybus-networking` and Quill.
 
 ## Run The Server
 
@@ -126,7 +130,7 @@ int main() {
     client.subscribe("alerts");
 
     spraybus::common::run_forever([&] {
-        client.process([](const spraybus::protocol::Message& msg) {
+        client.process([](const spraybus::networking::protocol::Message& msg) {
             std::cout << msg.topic() << ": " << msg.payload_as_string() << '\n';
         });
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -140,8 +144,8 @@ spraybus has three layers:
 
 1. `spraybus::networking` wraps the ENet host, peer, packet, and event loop
    primitives.
-2. `spraybus::protocol` defines the fixed 16-byte header, message types, and
-   helpers that construct packet bytes.
+2. `spraybus::networking::protocol` defines the fixed 16-byte header, message
+   types, and helpers that construct packet bytes.
 3. `spraybus::client` and `spraybus::server` implement topic lookup,
    subscription tracking, publishing, and fanout.
 
@@ -151,8 +155,8 @@ subscribe packets use the numeric topic key.
 
 ## Protocol Overview
 
-Every packet starts with `spraybus::protocol::Header`, followed by an optional
-payload.
+Every packet starts with `spraybus::networking::protocol::Header`, followed by
+an optional payload.
 
 Current message types:
 
@@ -169,12 +173,12 @@ The server drops packets shorter than the protocol header.
 
 ## Logging
 
-Logging is backed by Quill. Call `spraybus::common::init_logging()` before
-expecting log output from application code. `spraybus::common::set_logfile()`
+Server logging is backed by Quill. Call `spraybus::server::init_logging()`
+before expecting log output from server code. `spraybus::server::set_logfile()`
 can be used before logger creation to route logs to a file.
 
-The CLI intentionally does not start the logging backend, so `sub` prints only
-message payloads to stdout.
+The client API and CLI do not start or link Quill, so `sub` prints only message
+payloads to stdout.
 
 ## API Documentation
 

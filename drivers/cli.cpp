@@ -149,10 +149,11 @@ int run(int argc, char** argv) {
 
         client.subscribe(options.args[0]);
         spraybus::common::run_forever([&]() {
-            client.process([&](const spraybus::protocol::Message& msg) {
-                std::cout << msg.payload_as_string() << '\n';
-                std::cout.flush();
-            });
+            client.process(
+                [&](const spraybus::networking::protocol::Message& msg) {
+                    std::cout << msg.payload_as_string() << '\n';
+                    std::cout.flush();
+                });
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         });
         return 0;

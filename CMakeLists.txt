@@ -9,20 +9,24 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(quill REQUIRED)
-find_package(Boost REQUIRED)
 find_package(enet REQUIRED)
-find_package(prometheus-cpp REQUIRED)
 
-add_library(spraybus)
-file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")
-target_sources(spraybus PRIVATE ${SOURCE_FILES})
-target_include_directories(spraybus PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(spraybus PUBLIC quill::quill boost::boost enet::enet
-                                      prometheus-cpp::prometheus-cpp)
+add_library(spraybus-networking src/spraybus/networking/networking.cpp)
+target_include_directories(spraybus-networking
+                           PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_link_libraries(spraybus-networking PUBLIC enet::enet)
 
-file(GLOB DRIVERS_SOURCES ${PROJECT_SOURCE_DIR}/drivers/*.cpp)
-foreach(sourcefile ${DRIVERS_SOURCES})
-  get_filename_component(name ${sourcefile} NAME_WE)
-  add_executable(${name} ${sourcefile})
-  target_link_libraries(${name} spraybus)
-endforeach(sourcefile ${DRIVERS_SOURCES})
+add_library(spraybus-client src/spraybus/client/client.cpp)
+target_include_directories(spraybus-client PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_link_libraries(spraybus-client PUBLIC spraybus-networking)
+
+add_library(spraybus-server src/spraybus/server/server.cpp
+                            src/spraybus/server/logging.cpp)
+target_include_directories(spraybus-server PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_link_libraries(spraybus-server PUBLIC spraybus-networking quill::quill)
+
+add_executable(main drivers/main.cpp)
+target_link_libraries(main PRIVATE spraybus-server)
+
+add_executable(cli drivers/cli.cpp)
+target_link_libraries(cli PRIVATE spraybus-client)

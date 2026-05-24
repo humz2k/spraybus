@@ -1,14 +1,14 @@
-#include <spraybus/common/logging.hpp>
+#include <spraybus/server/logging.hpp>
 
 #include <quill/Backend.h>
+#include <quill/Frontend.h>
 #include <quill/sinks/ConsoleSink.h>
 #include <quill/sinks/FileSink.h>
-#include <quill/sinks/JsonSink.h>
 
 #include <optional>
 #include <string>
 
-namespace spraybus::common {
+namespace spraybus::server {
 
 void init_logging() { quill::Backend::start(); }
 
@@ -21,11 +21,11 @@ Logger create_logger(const std::string& name) {
         return quill::Frontend::create_or_get_logger(
             name,
             quill::Frontend::create_or_get_sink<quill::FileSink>(*logfile));
-    } else {
-        return quill::Frontend::create_or_get_logger(
-            name,
-            quill::Frontend::create_or_get_sink<quill::ConsoleSink>("default"));
     }
+
+    return quill::Frontend::create_or_get_logger(
+        name,
+        quill::Frontend::create_or_get_sink<quill::ConsoleSink>("default"));
 }
 
-} // namespace spraybus::common
+} // namespace spraybus::server

@@ -16,17 +16,18 @@ uint64_t Client::get_topic_key(const std::string& topic) {
     networking::client::Client temporary_client(m_host, m_port);
     temporary_client.send(msg);
     auto packet = temporary_client.recv();
-    protocol::Message response(packet.data());
-    if (response.header().type() == protocol::Type::topic_response) {
+    networking::protocol::Message response(packet.data());
+    if (response.header().type() ==
+        networking::protocol::Type::topic_response) {
         std::string topic_name = std::string(response.payload_as_string());
         uint64_t topic_key = response.header().topic_key();
         m_topic_map[topic_name] = topic_key;
         m_inverse_topic_map[topic_key] = topic_name;
         return topic_key;
     } else {
-        throw std::runtime_error(
-            "Unexpected response type: " +
-            std::string(protocol::to_string(response.header().type())));
+        throw std::runtime_error("Unexpected response type: " +
+                                 std::string(networking::protocol::to_string(
+                                     response.header().type())));
     }
 }
 

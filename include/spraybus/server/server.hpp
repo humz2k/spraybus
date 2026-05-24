@@ -5,10 +5,10 @@
  * @brief High-level spraybus pub/sub server.
  */
 
-#include <spraybus/common/logging.hpp>
+#include <spraybus/networking/protocol.hpp>
 #include <spraybus/networking/server/server.hpp>
-#include <spraybus/protocol/protocol.hpp>
-#include <spraybus/topic/map.hpp>
+#include <spraybus/server/logging.hpp>
+#include <spraybus/server/topic_map.hpp>
 
 #include <cstdint>
 #include <span>
@@ -33,7 +33,7 @@ struct ClientData {
  * subscriptions, and forwards published payloads to subscribed peers.
  */
 class Server : public networking::server::Server<Server, ClientData>,
-               common::ClassLogger {
+               ClassLogger {
   public:
     /**
      * @brief Low-level CRTP server base type.
@@ -46,8 +46,8 @@ class Server : public networking::server::Server<Server, ClientData>,
     using Client = typename Base::Client;
 
   private:
-    topic::Map m_topic_map;
-    protocol::Constructor m_protocol_constructor;
+    TopicMap m_topic_map;
+    networking::protocol::Constructor m_protocol_constructor;
 
   public:
     /**

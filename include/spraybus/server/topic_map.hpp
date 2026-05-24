@@ -1,8 +1,8 @@
 #pragma once
 
 /**
- * @file map.hpp
- * @brief In-memory mapping from topic names to numeric topic keys.
+ * @file topic_map.hpp
+ * @brief Server-owned mapping from topic names to numeric topic keys.
  */
 
 #include <cstdint>
@@ -10,7 +10,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace spraybus::topic {
+namespace spraybus::server {
 
 /**
  * @brief Assigns stable numeric keys to topic names for one server process.
@@ -18,7 +18,7 @@ namespace spraybus::topic {
  * Keys are generated monotonically starting at 1 and are not persisted across
  * server restarts.
  */
-class Map {
+class TopicMap {
   private:
     std::unordered_map<std::string, uint64_t> m_map;
 
@@ -59,4 +59,4 @@ class Map {
     }
 };
 
-} // namespace spraybus::topic
+} // namespace spraybus::server

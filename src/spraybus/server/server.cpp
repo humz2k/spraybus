@@ -2,7 +2,7 @@
 
 namespace spraybus::server {
 
-Server::Server(int port) : Base(port), common::ClassLogger("server") {
+Server::Server(int port) : Base(port), ClassLogger("server") {
     LOG_INFO(this->logger(), "Server started on port {}", port);
 }
 
@@ -17,19 +17,20 @@ void Server::on_disconnect(Client* client) {
 }
 
 void Server::on_message(Client* client, std::span<std::byte> message) {
-    if (message.size() < sizeof(protocol::Header)) {
+    if (message.size() < sizeof(networking::protocol::Header)) {
         LOG_WARNING(this->logger(),
                     "Ignoring malformed packet from client {}: expected at "
                     "least {} bytes, got {}",
-                    client->id(), sizeof(protocol::Header), message.size());
+                    client->id(), sizeof(networking::protocol::Header),
+                    message.size());
         return;
     }
 
-    protocol::Message msg(message);
+    networking::protocol::Message msg(message);
     LOG_DEBUG(this->logger(), "Received message from client {}: {}",
               client->id(), msg.to_string());
     switch (msg.header().type()) {
-    case protocol::Type::topic_request: {
+    case networking::protocol::Type::topic_request: {
         std::string topic_name = std::string(msg.payload_as_string());
         uint64_t topic_key = m_topic_map.get_or_create(topic_name);
         auto response_payload =
@@ -38,19 +39,19 @@ void Server::on_message(Client* client, std::span<std::byte> message) {
         LOG_INFO(this->logger(), "Registered topic '{}' with key {}",
                  topic_name, topic_key);
     } break;
-    case protocol::Type::subscribe: {
+    case networking::protocol::Type::subscribe: {
         uint64_t topic_key = msg.header().topic_key();
         client->data().subscribed_topics.insert(topic_key);
         LOG_INFO(this->logger(), "Client {} subscribed to topic key {}",
                  client->id(), topic_key);
     } break;
-    case protocol::Type::unsubscribe: {
+    case networking::protocol::Type::unsubscribe: {
         uint64_t topic_key = msg.header().topic_key();
         client->data().subscribed_topics.erase(topic_key);
         LOG_INFO(this->logger(), "Client {} unsubscribed from topic key {}",
                  client->id(), topic_key);
     } break;
-    case protocol::Type::publish: {
+    case networking::protocol::Type::publish: {
         uint64_t topic_key = msg.header().topic_key();
         auto payload = msg.payload();
         auto fanout_payload = m_protocol_constructor.fanout(topic_key, payload);
@@ -67,7 +68,7 @@ void Server::on_message(Client* client, std::span<std::byte> message) {
     } break;
     default:
         LOG_WARNING(this->logger(), "Unhandled message type: {}",
-                    protocol::to_string(msg.header().type()));
+                    networking::protocol::to_string(msg.header().type()));
         break;
     }
 }

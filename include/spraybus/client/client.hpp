@@ -6,7 +6,7 @@
  */
 
 #include <spraybus/networking/client/client.hpp>
-#include <spraybus/protocol/protocol.hpp>
+#include <spraybus/networking/protocol.hpp>
 
 #include <cstdint>
 #include <span>
@@ -29,7 +29,7 @@ class Client {
     networking::client::Client m_client;
     std::string m_host;
     uint16_t m_port;
-    protocol::Constructor m_protocol_constructor;
+    networking::protocol::Constructor m_protocol_constructor;
     std::unordered_map<std::string, uint64_t> m_topic_map;
     std::unordered_map<uint64_t, std::string> m_inverse_topic_map;
 
@@ -99,16 +99,16 @@ class Client {
      * @brief Poll once for a fanout message and invoke a callback if one
      * exists.
      *
-     * @tparam Lambda Callable receiving `const protocol::Message&`.
+     * @tparam Lambda Callable receiving `const networking::protocol::Message&`.
      * @param lambda Callback invoked for each received fanout message.
      * @throws std::runtime_error when the underlying connection disconnects.
      */
     template <typename Lambda> void process(Lambda&& lambda) {
         networking::client::Packet packet;
         if (m_client.process(packet)) {
-            protocol::Message msg(packet.data());
+            networking::protocol::Message msg(packet.data());
             switch (msg.header().type()) {
-            case protocol::Type::fanout: {
+            case networking::protocol::Type::fanout: {
                 std::string_view topic_name = "unknown";
                 auto it = m_inverse_topic_map.find(msg.header().topic_key());
                 if (it != m_inverse_topic_map.end()) {
