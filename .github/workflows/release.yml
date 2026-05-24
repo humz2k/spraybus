@@ -74,14 +74,23 @@ jobs:
           tar -czf "dist/${archive}" -C dist/package spraybus-server
           sha256sum "dist/${archive}" > "dist/${archive}.sha256"
 
-      - name: Create GitHub release
+      - name: Create or update GitHub release
         shell: bash
         run: |
           archive="spraybus-server-${GITHUB_REF_NAME}-linux-x86_64.tar.gz"
-          gh release create "${GITHUB_REF_NAME}" \
-            "dist/${archive}" \
-            "dist/${archive}.sha256" \
-            --repo "${GITHUB_REPOSITORY}" \
-            --title "spraybus ${GITHUB_REF_NAME}" \
-            --generate-notes \
-            --verify-tag
+
+          if gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" \
+              "dist/${archive}" \
+              "dist/${archive}.sha256" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --clobber
+          else
+            gh release create "${GITHUB_REF_NAME}" \
+              "dist/${archive}" \
+              "dist/${archive}.sha256" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --title "spraybus ${GITHUB_REF_NAME}" \
+              --generate-notes \
+              --verify-tag
+          fi

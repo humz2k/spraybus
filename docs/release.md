@@ -18,3 +18,6 @@ The tag workflow:
 1. Builds the server app with `with_server=True` and `with_apps=True`.
 2. Creates a GitHub release for the tag.
 3. Uploads `spraybus-server-<tag>-linux-x86_64.tar.gz` and a SHA-256 file.
+
+If the release already exists, the workflow uploads the server archive and
+checksum to the existing release instead of creating a duplicate release.
