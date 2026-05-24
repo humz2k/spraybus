@@ -58,6 +58,12 @@ Quill.
 ENet is a public transitive dependency because the client headers expose the
 low-level networking wrapper directly.
 
+## Release CI
+
+Pushing a `v*` tag whose commit is reachable from `main` builds a Linux server
+binary, creates a GitHub release, and uploads the server archive. See
+[docs/release.md](docs/release.md) for the full release flow.
+
 ## Example Client
 
 The `examples/client` directory is a standalone Conan/CMake app that consumes
