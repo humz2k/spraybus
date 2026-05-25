@@ -35,7 +35,7 @@ jobs:
         run: conan profile detect --force
 
       - name: Build and test client package
-        run: conan create . --build=missing
+        run: conan create . --build=missing -s compiler.cppstd=23
 
       - name: Build server and apps
-        run: conan build . --build=missing -o '&:with_server=True' -o '&:with_apps=True'
+        run: conan build . --build=missing -s compiler.cppstd=23 -o '&:with_server=True' -o '&:with_apps=True'

@@ -61,7 +61,7 @@ jobs:
         run: conan profile detect --force
 
       - name: Build server binary
-        run: conan build . --build=missing -o '&:with_server=True' -o '&:with_apps=True'
+        run: conan build . --build=missing -s compiler.cppstd=23 -o '&:with_server=True' -o '&:with_apps=True'
 
       - name: Package release asset
         shell: bash
