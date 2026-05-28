@@ -37,5 +37,8 @@ jobs:
       - name: Build and test client package
         run: conan create . --build=missing -s compiler.cppstd=23
 
-      - name: Build server and apps
-        run: conan build . --build=missing -s compiler.cppstd=23 -o '&:with_server=True' -o '&:with_apps=True'
+      - name: Build default artifacts
+        run: conan build . --build=missing -s compiler.cppstd=23 -of build/ci-default
+
+      - name: Import Python package
+        run: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=python/src:build/ci-default/build/Release/python python -c 'import spraybus; import spraybus._native'

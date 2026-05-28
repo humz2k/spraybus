@@ -59,4 +59,17 @@ void Client::subscribe(const std::string& topic) {
     m_client.send(msg);
 }
 
+std::optional<FanoutMessage> Client::poll() {
+    std::optional<FanoutMessage> fanout;
+    process([&fanout](const networking::protocol::Message& message) {
+        auto payload = message.payload();
+        fanout = FanoutMessage{
+            .topic_key = message.header().topic_key(),
+            .topic = std::string(message.topic()),
+            .payload = std::vector<std::byte>(payload.begin(), payload.end()),
+        };
+    });
+    return fanout;
+}
+
 } // namespace spraybus::client

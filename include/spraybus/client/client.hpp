@@ -9,12 +9,38 @@
 #include <spraybus/networking/protocol.hpp>
 
 #include <cstdint>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <vector>
 
 namespace spraybus::client {
+
+/**
+ * @brief Owning copy of a received fanout message.
+ *
+ * Unlike networking::protocol::Message, this type owns its payload and topic
+ * name. It is safe to return across language boundaries.
+ */
+struct FanoutMessage {
+    /**
+     * @brief Server-assigned topic key for the message.
+     */
+    uint64_t topic_key;
+
+    /**
+     * @brief Resolved topic name, or "unknown" if the client has not resolved
+     * the key.
+     */
+    std::string topic;
+
+    /**
+     * @brief Fanout payload bytes.
+     */
+    std::vector<std::byte> payload;
+};
 
 /**
  * @brief High-level client for resolving topics, publishing, and receiving
@@ -93,6 +119,14 @@ class Client {
      * @param topic Topic name.
      */
     void subscribe(const std::string& topic);
+
+    /**
+     * @brief Poll once for a fanout message.
+     *
+     * @return Owning fanout message when one is ready; std::nullopt otherwise.
+     * @throws std::runtime_error when the underlying connection disconnects.
+     */
+    std::optional<FanoutMessage> poll();
 
     /**
      * @brief Poll once for a fanout message and invoke a callback if one

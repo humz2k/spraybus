@@ -10,11 +10,12 @@ protocol work.
 
 ## Dependencies
 
-The default Conan package builds the client library only and depends on:
+The default Conan build includes the client library, server library, command-line
+apps, and Python extension. It depends on:
 
 - ENet
-
-Local server/app builds also require Quill.
+- Quill
+- pybind11
 
 You also need a C++23 compiler, CMake, and Conan 2.
 
@@ -32,10 +33,13 @@ The package reference is:
 spraybus-client/0.1
 ```
 
-The package installs the client-facing headers and libraries:
+The default package build compiles the server, CLI, and Python extension too.
+The installed C++ artifacts are the client-facing headers and libraries:
 
 - `spraybus-client`
 - `spraybus-networking`
+
+The Python package is installed under `spraybus/` when `with_python=True`.
 
 It exposes the CMake target:
 
@@ -52,8 +56,11 @@ conan login myrepo <user>
 conan upload "spraybus-client/0.1:*" -r=myrepo -c
 ```
 
-The client package does not include the server library, server headers, CLI, or
-Quill.
+To build a minimal C++ client-only package, disable the optional outputs:
+
+```sh
+conan create . --build=missing -o "&:with_server=False" -o "&:with_apps=False" -o "&:with_python=False"
+```
 
 ENet is a public transitive dependency because the client headers expose the
 low-level networking wrapper directly.
@@ -63,6 +70,39 @@ low-level networking wrapper directly.
 Pushing a `v*` tag whose commit is reachable from `main` builds a Linux server
 binary, creates a GitHub release, and uploads the server archive. See
 [docs/release.md](docs/release.md) for the full release flow.
+
+## Python Client
+
+The `python/` directory contains an asyncio client wrapper around the C++
+client. The native client lives on one background thread; Python async methods
+send commands to that thread and receive fanout messages through an
+`asyncio.Queue`.
+
+Build the native Python extension with Conan:
+
+```sh
+conan build . --build=missing -s compiler.cppstd=23 -of build/python
+PYTHONPATH=python/src:build/python/build/Release/python python -c "import spraybus"
+```
+
+Example:
+
+```python
+import asyncio
+import spraybus
+
+
+async def main():
+    async with spraybus.AsyncClient("localhost", 6767) as client:
+        await client.publish("test_topic", "hello from python")
+        await client.subscribe("test_topic")
+
+        async for message in client.messages():
+            print(message.topic, message.text())
+
+
+asyncio.run(main())
+```
 
 ## Example Client
 
@@ -84,20 +124,24 @@ conan build examples/client --build=missing
 conan editable remove .
 ```
 
+The `examples/python` directory contains a small asyncio client example that
+uses the in-tree Python package and native extension.
+
 ## Local Build
 
-To build the server and CLI for local development:
+To build the server, CLI, and Python extension for local development:
 
 ```sh
-conan build . --build=missing -o "&:with_server=True" -o "&:with_apps=True"
+conan build . --build=missing -s compiler.cppstd=23
 ```
 
 This writes build artifacts under `build/Release/` and creates the following
-executables:
+executables and Python extension:
 
 ```text
 build/Release/main
 build/Release/cli
+build/Release/python/spraybus/_native.*
 ```
 
 The build defines three library targets:

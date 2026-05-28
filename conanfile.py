@@ -21,12 +21,14 @@ class SprayBusClientConan(ConanFile):
         "fPIC": [True, False],
         "with_server": [True, False],
         "with_apps": [True, False],
+        "with_python": [True, False],
     }
     default_options = {
         "shared": False,
         "fPIC": True,
-        "with_server": False,
-        "with_apps": False,
+        "with_server": True,
+        "with_apps": True,
+        "with_python": True,
     }
 
     exports_sources = (
@@ -35,6 +37,10 @@ class SprayBusClientConan(ConanFile):
         "include/*",
         "src/*",
         "drivers/*",
+        "python/CMakeLists.txt",
+        "python/src/spraybus/_bindings.cpp",
+        "python/src/spraybus/*.py",
+        "python/src/spraybus/py.typed",
         "LICENSE",
     )
     generators = "CMakeDeps"
@@ -59,6 +65,8 @@ class SprayBusClientConan(ConanFile):
         )
         if self.options.with_server:
             self.requires("quill/11.0.2")
+        if self.options.with_python:
+            self.requires("pybind11/2.13.6", libs=False, visible=False)
 
     def generate(self):
         toolchain = CMakeToolchain(self)
@@ -66,6 +74,9 @@ class SprayBusClientConan(ConanFile):
             self.options.with_server
         )
         toolchain.variables["SPRAYBUS_BUILD_APPS"] = bool(self.options.with_apps)
+        toolchain.variables["SPRAYBUS_BUILD_PYTHON"] = bool(
+            self.options.with_python
+        )
         toolchain.variables["SPRAYBUS_INSTALL_CLIENT"] = True
         toolchain.generate()
 
@@ -99,3 +110,13 @@ class SprayBusClientConan(ConanFile):
         )
         self.cpp_info.components["client"].libs = ["spraybus-client"]
         self.cpp_info.components["client"].requires = ["networking", "enet::enet"]
+
+        if self.options.with_server:
+            self.cpp_info.components["server"].set_property(
+                "cmake_target_name", "spraybus::server"
+            )
+            self.cpp_info.components["server"].libs = ["spraybus-server"]
+            self.cpp_info.components["server"].requires = [
+                "networking",
+                "quill::quill",
+            ]

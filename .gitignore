@@ -59,6 +59,21 @@ CMakeUserPresets.json
 *.bak
 *.swp
 
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+htmlcov/
+.venv/
+dist/
+wheelhouse/
+
 # vcpkg
 vcpkg_installed/
 

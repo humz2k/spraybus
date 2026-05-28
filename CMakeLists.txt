@@ -13,6 +13,7 @@ include(GNUInstallDirs)
 
 option(SPRAYBUS_BUILD_SERVER "Build the spraybus server library" ON)
 option(SPRAYBUS_BUILD_APPS "Build spraybus command-line applications" ON)
+option(SPRAYBUS_BUILD_PYTHON "Build the spraybus Python extension module" ON)
 option(SPRAYBUS_INSTALL_CLIENT "Install the spraybus client package" ON)
 
 find_package(enet REQUIRED)
@@ -59,9 +60,18 @@ if(SPRAYBUS_BUILD_APPS)
   endif()
 endif()
 
+if(SPRAYBUS_BUILD_PYTHON)
+  add_subdirectory(python)
+endif()
+
 if(SPRAYBUS_INSTALL_CLIENT)
+  set(spraybus_install_targets spraybus-networking spraybus-client)
+  if(SPRAYBUS_BUILD_SERVER)
+    list(APPEND spraybus_install_targets spraybus-server)
+  endif()
+
   install(
-    TARGETS spraybus-networking spraybus-client
+    TARGETS ${spraybus_install_targets}
     EXPORT spraybus-clientTargets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -76,6 +86,22 @@ if(SPRAYBUS_INSTALL_CLIENT)
   install(FILES include/spraybus/networking/networking.hpp
                 include/spraybus/networking/protocol.hpp
           DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/spraybus/networking)
+
+  if(SPRAYBUS_BUILD_SERVER)
+    install(DIRECTORY include/spraybus/common
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/spraybus)
+    install(DIRECTORY include/spraybus/server
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/spraybus)
+    install(DIRECTORY include/spraybus/networking/server
+            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/spraybus/networking)
+  endif()
+
+  if(SPRAYBUS_BUILD_APPS)
+    install(TARGETS cli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    if(SPRAYBUS_BUILD_SERVER)
+      install(TARGETS main RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    endif()
+  endif()
 
   install(
     EXPORT spraybus-clientTargets
