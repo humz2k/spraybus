@@ -12,7 +12,6 @@ license = { text = "Unlicense" }
 authors = [{ name = "spraybus contributors" }]
 
 [project.scripts]
-spraybus = "spraybus_cli.__main__:main"
 spraybus-cli = "spraybus_cli.__main__:main"
 
 [tool.scikit-build]
