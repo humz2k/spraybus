@@ -129,8 +129,23 @@ jobs:
       - name: Set package version from tag
         shell: bash
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          sed -i "s/^version = .*/version = \"${version}\"/" python/server/pyproject.toml
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          version = os.environ["GITHUB_REF_NAME"].removeprefix("v")
+          pyproject = Path("python/server/pyproject.toml")
+          lines = pyproject.read_text().splitlines()
+          pyproject.write_text(
+              "\n".join(
+                  f'version = "{version}"'
+                  if line.startswith("version = ")
+                  else line
+                  for line in lines
+              )
+              + "\n"
+          )
+          PY
 
       - name: Build spraybus-server platform wheel
         uses: pypa/cibuildwheel@v3.4.1
