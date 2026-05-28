@@ -5,6 +5,7 @@
  * @brief Wire protocol primitives for spraybus messages.
  */
 
+#include <bit>
 #include <cstddef>
 #include <cstdint>
 #include <span>
@@ -13,7 +14,41 @@
 #include <string_view>
 #include <vector>
 
+#if defined(__APPLE__)
+#include <arpa/inet.h>
+#elif defined(__linux__)
+#include <endian.h>
+#endif
+
 namespace spraybus::networking::protocol {
+
+namespace detail {
+
+inline uint64_t host_to_network64(uint64_t value) noexcept {
+#if defined(__APPLE__)
+    return htonll(value);
+#elif defined(__linux__)
+    return htobe64(value);
+#else
+    if constexpr (std::endian::native == std::endian::little) {
+        return std::byteswap(value);
+    } else {
+        return value;
+    }
+#endif
+}
+
+inline uint64_t network_to_host64(uint64_t value) noexcept {
+#if defined(__APPLE__)
+    return ntohll(value);
+#elif defined(__linux__)
+    return be64toh(value);
+#else
+    return host_to_network64(value);
+#endif
+}
+
+} // namespace detail
 
 /**
  * @brief Identifies which kind of node created a message.
@@ -129,7 +164,8 @@ struct [[gnu::packed]] Header {
     const uint64_t m_topic_key_;
 
     Header(Origin origin, Type type, uint64_t topic_key)
-        : m_origin_(origin), m_type_(type), m_topic_key_(topic_key) {}
+        : m_origin_(origin), m_type_(type),
+          m_topic_key_(detail::host_to_network64(topic_key)) {}
 
   public:
     /**
@@ -218,7 +254,9 @@ struct [[gnu::packed]] Header {
     /**
      * @brief Return the topic key encoded in the header.
      */
-    uint64_t topic_key() const { return m_topic_key_; }
+    uint64_t topic_key() const {
+        return detail::network_to_host64(m_topic_key_);
+    }
 
     /**
      * @brief Render the header as a diagnostic string.
@@ -235,7 +273,7 @@ struct [[gnu::packed]] Header {
                ", type: " +
                std::string(
                    ::spraybus::networking::protocol::to_string(m_type_)) +
-               ", topic_key: " + std::to_string(m_topic_key_) + " }";
+               ", topic_key: " + std::to_string(topic_key()) + " }";
     }
 };
 
