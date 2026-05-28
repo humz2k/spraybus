@@ -1,7 +1,9 @@
-find_package(
-  Python
-  COMPONENTS Interpreter Development
-  REQUIRED)
+find_package(Python COMPONENTS Interpreter REQUIRED)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.18)
+  find_package(Python COMPONENTS Development.Module REQUIRED)
+else()
+  find_package(Python COMPONENTS Development REQUIRED)
+endif()
 find_package(pybind11 CONFIG REQUIRED)
 
 pybind11_add_module(_native src/spraybus/_bindings.cpp)
