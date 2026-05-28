@@ -104,6 +104,63 @@ async def main():
 asyncio.run(main())
 ```
 
+## Python Server Package
+
+The `python/server` directory packages the native server as `spraybus-server`.
+After installing the package, users can run the server with:
+
+```sh
+spraybus-server
+```
+
+The command runs the bundled C++ server binary. It listens on UDP port `6767` by
+default, or `SPRAYBUS_PORT` when set:
+
+```sh
+SPRAYBUS_PORT=7000 spraybus-server
+```
+
+Build a wheel from the repository root after generating Conan dependency files:
+
+```sh
+python -m pip install build
+conan install . --build=missing -s compiler.cppstd=23 -of build/python-server
+CMAKE_PREFIX_PATH="$PWD/build/python-server/build/Release/generators" \
+  python -m build python/server --wheel
+```
+
+Publish binary wheels for end users; source builds need CMake to find ENet and
+Quill.
+
+## Python CLI Package
+
+The `python/cli` directory packages the native CLI as `spraybus-cli`. After
+installing the package, users can run:
+
+```sh
+spraybus pub test_topic "hello"
+spraybus sub test_topic
+```
+
+The package also installs `spraybus-cli` as an alias. The command connects to
+`localhost:6767` by default. Flags take precedence over environment variables:
+
+```sh
+spraybus --host localhost --port 7000 pub test_topic "hello"
+SPRAYBUS_HOST=localhost SPRAYBUS_PORT=7000 spraybus sub test_topic
+```
+
+Build a wheel from the repository root after generating Conan dependency files:
+
+```sh
+python -m pip install build
+conan install . --build=missing -s compiler.cppstd=23 -of build/python-cli
+CMAKE_PREFIX_PATH="$PWD/build/python-cli/build/Release/generators" \
+  python -m build python/cli --wheel
+```
+
+Publish binary wheels for end users; source builds need CMake to find ENet.
+
 ## Example Client
 
 The `examples/client` directory is a standalone Conan/CMake app that consumes

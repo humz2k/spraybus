@@ -1,0 +1,29 @@
+[build-system]
+requires = ["scikit-build-core>=0.10"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "spraybus-cli"
+version = "0.1.0"
+description = "Console command for running the native spraybus CLI"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Unlicense" }
+authors = [{ name = "spraybus contributors" }]
+
+[project.scripts]
+spraybus = "spraybus_cli.__main__:main"
+spraybus-cli = "spraybus_cli.__main__:main"
+
+[tool.scikit-build]
+cmake.source-dir = "../.."
+wheel.packages = ["src/spraybus_cli"]
+cmake.build-type = "Release"
+
+[tool.scikit-build.cmake.define]
+SPRAYBUS_BUILD_SERVER = "OFF"
+SPRAYBUS_BUILD_APPS = "ON"
+SPRAYBUS_BUILD_PYTHON = "OFF"
+SPRAYBUS_INSTALL_CLIENT = "OFF"
+SPRAYBUS_INSTALL_PYTHON_CLI = "ON"
+SPRAYBUS_INSTALL_PYTHON_SERVER = "OFF"

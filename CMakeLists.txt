@@ -15,6 +15,19 @@ option(SPRAYBUS_BUILD_SERVER "Build the spraybus server library" ON)
 option(SPRAYBUS_BUILD_APPS "Build spraybus command-line applications" ON)
 option(SPRAYBUS_BUILD_PYTHON "Build the spraybus Python extension module" ON)
 option(SPRAYBUS_INSTALL_CLIENT "Install the spraybus client package" ON)
+option(SPRAYBUS_INSTALL_PYTHON_CLI
+       "Install the spraybus-cli Python package files" OFF)
+option(SPRAYBUS_INSTALL_PYTHON_SERVER
+       "Install the spraybus-server Python package files" OFF)
+
+if(SPRAYBUS_INSTALL_PYTHON_CLI AND NOT SPRAYBUS_BUILD_APPS)
+  message(FATAL_ERROR "SPRAYBUS_INSTALL_PYTHON_CLI requires apps")
+endif()
+
+if(SPRAYBUS_INSTALL_PYTHON_SERVER
+   AND (NOT SPRAYBUS_BUILD_SERVER OR NOT SPRAYBUS_BUILD_APPS))
+  message(FATAL_ERROR "SPRAYBUS_INSTALL_PYTHON_SERVER requires server apps")
+endif()
 
 find_package(enet REQUIRED)
 
@@ -53,10 +66,16 @@ endif()
 if(SPRAYBUS_BUILD_APPS)
   add_executable(cli drivers/cli.cpp)
   target_link_libraries(cli PRIVATE spraybus-client)
+  if(SPRAYBUS_INSTALL_PYTHON_CLI)
+    set_target_properties(cli PROPERTIES OUTPUT_NAME "_spraybus_cli")
+  endif()
 
   if(SPRAYBUS_BUILD_SERVER)
     add_executable(main drivers/main.cpp)
     target_link_libraries(main PRIVATE spraybus-server)
+    if(SPRAYBUS_INSTALL_PYTHON_SERVER)
+      set_target_properties(main PROPERTIES OUTPUT_NAME "_spraybus_server")
+    endif()
   endif()
 endif()
 
@@ -122,4 +141,22 @@ if(SPRAYBUS_INSTALL_CLIENT)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/spraybus-clientConfig.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/spraybus-clientConfigVersion.cmake
           DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/spraybus-client)
+endif()
+
+if(SPRAYBUS_INSTALL_PYTHON_CLI)
+  install(
+    DIRECTORY python/cli/src/spraybus_cli
+    DESTINATION .
+    FILES_MATCHING
+    PATTERN "*.py")
+  install(TARGETS cli RUNTIME DESTINATION spraybus_cli/bin)
+endif()
+
+if(SPRAYBUS_INSTALL_PYTHON_SERVER)
+  install(
+    DIRECTORY python/server/src/spraybus_server
+    DESTINATION .
+    FILES_MATCHING
+    PATTERN "*.py")
+  install(TARGETS main RUNTIME DESTINATION spraybus_server/bin)
 endif()
