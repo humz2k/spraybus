@@ -403,6 +403,7 @@ jobs:
             -o '&:with_server=False'
             -o '&:with_apps=False'
             -o '&:with_python=False'
+            -o '&:fPIC=True'
             -of build/python-client
           CIBW_ENVIRONMENT_LINUX: CMAKE_PREFIX_PATH=/project/build/python-client/build/Release/generators
           CIBW_BEFORE_ALL_MACOS: >
@@ -414,6 +415,7 @@ jobs:
             -o '&:with_server=False'
             -o '&:with_apps=False'
             -o '&:with_python=False'
+            -o '&:fPIC=True'
             -of build/python-client
           CIBW_ENVIRONMENT_MACOS: >
             MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos_deployment_target }}

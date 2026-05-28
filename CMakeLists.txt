@@ -54,6 +54,11 @@ spraybus_configure_library(spraybus-client)
 target_link_libraries(spraybus-client PUBLIC spraybus-networking)
 set_target_properties(spraybus-client PROPERTIES EXPORT_NAME client)
 
+if(SPRAYBUS_BUILD_PYTHON)
+  set_target_properties(spraybus-networking spraybus-client
+                        PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
 if(SPRAYBUS_BUILD_SERVER)
   add_library(spraybus-server src/spraybus/server/server.cpp
                               src/spraybus/server/logging.cpp)
