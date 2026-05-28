@@ -78,6 +78,12 @@ client. The native client lives on one background thread; Python async methods
 send commands to that thread and receive fanout messages through an
 `asyncio.Queue`.
 
+Install the package from PyPI:
+
+```sh
+pip install spraybus
+```
+
 Build the native Python extension with Conan:
 
 ```sh
@@ -103,6 +109,9 @@ async def main():
 
 asyncio.run(main())
 ```
+
+The release workflow publishes `spraybus` wheels for CPython 3.10 through 3.14
+on Linux x86_64, macOS arm64, and macOS x86_64.
 
 ## Python Server Package
 

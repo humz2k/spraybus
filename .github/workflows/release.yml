@@ -334,3 +334,123 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/spraybus-cli
+
+  build-python-client-package:
+    name: Build spraybus Python package (${{ matrix.artifact_suffix }})
+    runs-on: ${{ matrix.os }}
+    needs: validate-tag
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            cibw_build: "cp310-manylinux_x86_64 cp311-manylinux_x86_64 cp312-manylinux_x86_64 cp313-manylinux_x86_64 cp314-manylinux_x86_64"
+            cibw_archs: x86_64
+            artifact_suffix: linux-x86_64
+            macos_deployment_target: ""
+          - os: macos-15
+            cibw_build: "cp310-macosx_arm64 cp311-macosx_arm64 cp312-macosx_arm64 cp313-macosx_arm64 cp314-macosx_arm64"
+            cibw_archs: arm64
+            artifact_suffix: macos-arm64
+            macos_deployment_target: "11.0"
+          - os: macos-15-intel
+            cibw_build: "cp310-macosx_x86_64 cp311-macosx_x86_64 cp312-macosx_x86_64 cp313-macosx_x86_64 cp314-macosx_x86_64"
+            cibw_archs: x86_64
+            artifact_suffix: macos-x86_64
+            macos_deployment_target: "10.15"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set package version from tag
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          version = os.environ["GITHUB_REF_NAME"].removeprefix("v")
+          pyproject = Path("python/pyproject.toml")
+          lines = pyproject.read_text().splitlines()
+          pyproject.write_text(
+              "\n".join(
+                  f'version = "{version}"'
+                  if line.startswith("version = ")
+                  else line
+                  for line in lines
+              )
+              + "\n"
+          )
+          PY
+
+      - name: Build spraybus client platform wheels
+        uses: pypa/cibuildwheel@v3.4.1
+        env:
+          CIBW_BUILD: ${{ matrix.cibw_build }}
+          CIBW_ARCHS_LINUX: ${{ matrix.cibw_archs }}
+          CIBW_ARCHS_MACOS: ${{ matrix.cibw_archs }}
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+          CIBW_BEFORE_ALL_LINUX: >
+            python -m pip install --upgrade "conan>=2,<3" cmake ninja &&
+            cd /project &&
+            conan profile detect --force &&
+            conan install . --build=missing -s compiler.cppstd=23
+            -o '&:with_server=False'
+            -o '&:with_apps=False'
+            -o '&:with_python=False'
+            -of build/python-client
+          CIBW_ENVIRONMENT_LINUX: CMAKE_PREFIX_PATH=/project/build/python-client/build/Release/generators
+          CIBW_BEFORE_ALL_MACOS: >
+            python -m pip install --upgrade "conan>=2,<3" cmake ninja &&
+            cd "${GITHUB_WORKSPACE}" &&
+            conan profile detect --force &&
+            conan install . --build=missing -s compiler.cppstd=23
+            -s os.version=${{ matrix.macos_deployment_target }}
+            -o '&:with_server=False'
+            -o '&:with_apps=False'
+            -o '&:with_python=False'
+            -of build/python-client
+          CIBW_ENVIRONMENT_MACOS: >
+            MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos_deployment_target }}
+            CMAKE_ARGS=-DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.macos_deployment_target }}
+            CMAKE_PREFIX_PATH=${{ github.workspace }}/build/python-client/build/Release/generators
+          CIBW_TEST_COMMAND: python -c "import spraybus; import spraybus._native; print(spraybus.AsyncClient.__name__)"
+        with:
+          package-dir: python
+          output-dir: python/dist
+
+      - name: Upload Python package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spraybus-python-package-${{ matrix.artifact_suffix }}
+          path: python/dist/*.whl
+          if-no-files-found: error
+
+  publish-python-client-package:
+    name: Publish spraybus to PyPI
+    runs-on: ubuntu-latest
+    needs:
+      - build-server-release
+      - build-python-client-package
+    environment:
+      name: pypi
+      url: https://pypi.org/p/spraybus
+    permissions:
+      id-token: write
+    steps:
+      - name: Download Python package artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: spraybus-python-package-*
+          path: dist/spraybus
+          merge-multiple: true
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/spraybus
