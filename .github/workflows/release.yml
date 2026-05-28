@@ -109,14 +109,17 @@ jobs:
             cibw_build: cp310-manylinux_x86_64
             cibw_archs: x86_64
             artifact_suffix: linux-x86_64
+            macos_deployment_target: ""
           - os: macos-15
             cibw_build: cp310-macosx_arm64
             cibw_archs: arm64
             artifact_suffix: macos-arm64
+            macos_deployment_target: "11.0"
           - os: macos-15-intel
             cibw_build: cp310-macosx_x86_64
             cibw_archs: x86_64
             artifact_suffix: macos-x86_64
+            macos_deployment_target: "10.15"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -169,11 +172,15 @@ jobs:
             cd "${GITHUB_WORKSPACE}" &&
             conan profile detect --force &&
             conan install . --build=missing -s compiler.cppstd=23
+            -s os.version=${{ matrix.macos_deployment_target }}
             -o '&:with_server=True'
             -o '&:with_apps=True'
             -o '&:with_python=False'
             -of build/python-server
-          CIBW_ENVIRONMENT_MACOS: CMAKE_PREFIX_PATH=${{ github.workspace }}/build/python-server/build/Release/generators
+          CIBW_ENVIRONMENT_MACOS: >
+            MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos_deployment_target }}
+            CMAKE_ARGS=-DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.macos_deployment_target }}
+            CMAKE_PREFIX_PATH=${{ github.workspace }}/build/python-server/build/Release/generators
         with:
           package-dir: python/server
           output-dir: python/server/dist
