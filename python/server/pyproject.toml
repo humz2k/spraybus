@@ -17,6 +17,7 @@ spraybus-server = "spraybus_server.__main__:main"
 [tool.scikit-build]
 cmake.source-dir = "../.."
 wheel.packages = ["src/spraybus_server"]
+wheel.py-api = "py3"
 cmake.build-type = "Release"
 
 [tool.scikit-build.cmake.define]

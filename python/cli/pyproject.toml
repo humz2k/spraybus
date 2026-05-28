@@ -18,6 +18,7 @@ spraybus-cli = "spraybus_cli.__main__:main"
 [tool.scikit-build]
 cmake.source-dir = "../.."
 wheel.packages = ["src/spraybus_cli"]
+wheel.py-api = "py3"
 cmake.build-type = "Release"
 
 [tool.scikit-build.cmake.define]
