@@ -135,7 +135,8 @@ python -m cibuildwheel \
 ```
 
 Publish binary wheels for end users; source builds need CMake to find ENet and
-Quill.
+Quill. The release workflow publishes Linux x86_64, macOS arm64, and macOS
+x86_64 wheels for `spraybus-server`.
 
 ## Python CLI Package
 

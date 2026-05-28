@@ -31,4 +31,5 @@ python -m cibuildwheel \
 ```
 
 Binary wheels should be published for end users. Source builds need CMake to be
-able to find ENet and Quill.
+able to find ENet and Quill. The release workflow publishes Linux x86_64, macOS
+arm64, and macOS x86_64 wheels.
